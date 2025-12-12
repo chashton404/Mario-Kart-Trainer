@@ -1,5 +1,5 @@
 import { Kart } from "./models/Kart";
-import { useKeyboardControls } from "@react-three/drei";
+import { useKeyboardControls, OrbitControls } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { useRef } from "react";
 import { Vector3 } from "three";
@@ -9,6 +9,7 @@ import { useGameStore } from "./store";
 import gsap from "gsap";
 import { useTouchScreen } from "./hooks/useTouchScreen";
 import VFXEmitter from "./wawa-vfx/VFXEmitter";
+import { Model } from "./models/Witch";
 
 export const PlayerController = () => {
   const rbRef = useRef(null);
@@ -214,7 +215,7 @@ export const PlayerController = () => {
     camera.lookAt(cameraLookAtRef.current.getWorldPosition(new Vector3()));
     camera.position.lerp(
       cameraGroupRef.current.getWorldPosition(new Vector3()),
-      8 * delta
+      24 * delta
     );
 
     // const body = useGameStore.getState().body;
@@ -270,6 +271,7 @@ export const PlayerController = () => {
       <group ref={playerRef}>
         <group ref={cameraGroupRef} position={[0, 2, 5]}></group>
 
+{/* <OrbitControls/> */}
         <group ref={kartRef}>
           <VFXEmitter
             emitter="confettis"
@@ -305,14 +307,15 @@ export const PlayerController = () => {
             }}
           />
 
-          <Kart
+          {/* <Kart
             speed={speedRef}
             driftDirection={driftDirection}
             driftPower={driftPower}
             jumpOffset={jumpOffset}
             backWheelOffset={backWheelOffset}
             inputTurn={inputTurn}
-          />
+          /> */}
+          <Model speed={speedRef} driftDirection={driftDirection} driftPower={driftPower} jumpOffset={jumpOffset} backWheelOffset={backWheelOffset} inputTurn={inputTurn} />
 
           <group ref={cameraLookAtRef} position={[0, -2, -9]}></group>
         </group>
