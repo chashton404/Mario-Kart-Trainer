@@ -6,52 +6,149 @@ Files: wheel.glb [328.66KB] > C:\Users\mouli\mk3\public\models\wheel-transformed
 
 import React, { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { damp } from "three/src/math/MathUtils.js";
+import { Raycaster, Vector3 } from "three";
 
-export function Wheels({speed, inputTurn}) {
+const raycaster = new Raycaster();
+const direction = new Vector3(0, -1, 0);
+
+export function Wheels({ speed, inputTurn, driftPower, jumpOffset, backWheelOffset, wheelPRY }) {
   const { nodes, materials } = useGLTF("./models/wheel-transformed.glb");
-    const wheel3 = useRef(null);
-    const wheel2 = useRef(null);
-    const wheel1 = useRef(null);
-    const wheel0 = useRef(null);
-    const frontWheels = useRef(null);
-    const yRotation = useRef(0);
-    
-    const wheel0Base = useRef(null)
-    const wheel1Base = useRef(null)
-    const wheel2Base = useRef(null)
-    const wheel3Base = useRef(null)
+  const wheel3 = useRef(null);
+  const wheel2 = useRef(null);
+  const wheel1 = useRef(null);
+  const wheel0 = useRef(null);
+  const frontWheels = useRef(null);
+  const yRotation = useRef(0);
 
-    const rotateWheels = (delta) => {
-      const rotationSpeed = -speed.current * 0.01;
-          wheel0.current.rotation.x += rotationSpeed;
-          wheel1.current.rotation.x += rotationSpeed;
-          wheel2.current.rotation.x += rotationSpeed;
-          wheel3.current.rotation.x += rotationSpeed;
-      
-          yRotation.current = damp(
-            yRotation.current,
-            inputTurn.current * 2,
-            4, delta
-          );
-      
-          frontWheels.current.rotation.y = yRotation.current;
-    }
+  const wheel0Base = useRef(null);
+  const wheel1Base = useRef(null);
+  const wheel2Base = useRef(null);
+  const wheel3Base = useRef(null);
 
-    useFrame(({}, delta) => {
-      rotateWheels(delta);
-    })
+
+  const scene = useThree((state) => state.scene);
+
+  function getGroundPosition(wheelBase, wheel, offset = 0, wheelIndex, delta) {
+    const origin = new Vector3();
+
+    wheelBase.current.getWorldPosition(origin);
+
+    raycaster.set(origin, direction);
+    raycaster.far = 3;
+
+    raycaster.layers.set(1);
+    raycaster.firstHitOnly = true;
+
+    const intersects = raycaster.intersectObjects(scene.children, true);
+    if (!intersects.length) return;
+
+    const hit = intersects[0];
+
+    wheel.current.position.y = damp(
+      wheel.current.position.y,
+      hit.point.y + 0.93 + jumpOffset.current + offset,
+      24,
+      delta
+    );
+  }
+
+  function getWheelPositions() {
+    const wheelPositions = [wheel0, wheel1, wheel2, wheel3].map(
+      (wheel, index) => {
+        const position = wheel.current.getWorldPosition(new Vector3());
+        const localPos = wheel.current.position;
+        return position;
+      }
+    );
+    return wheelPositions;
+  }
+
+  const rotateWheels = (delta) => {
+    const rotationSpeed = -speed.current * 0.01;
+    wheel0.current.rotation.x += rotationSpeed;
+    wheel1.current.rotation.x += rotationSpeed;
+    wheel2.current.rotation.x += rotationSpeed;
+    wheel3.current.rotation.x += rotationSpeed;
+
+    yRotation.current = damp(
+      yRotation.current,
+      inputTurn.current * 2,
+      4,
+      delta
+    );
+
+    frontWheels.current.rotation.y = yRotation.current;
+  };
+
+  const stickWheelsToGround = (delta) => {
+    getGroundPosition(
+      wheel0Base,
+      wheel0,
+      backWheelOffset.current.left,
+      0,
+      delta
+    );
+    getGroundPosition(
+      wheel1Base,
+      wheel1,
+      backWheelOffset.current.right,
+      1,
+      delta
+    );
+    getGroundPosition(
+      wheel2Base,
+      wheel2,
+      backWheelOffset.current.left,
+      2,
+      delta
+    );
+    getGroundPosition(
+      wheel3Base,
+      wheel3,
+      backWheelOffset.current.right,
+      3,
+      delta
+    );
+  };
+
+  function moveAndRotateKart(wheelPositions) {
+    const a = wheelPositions[0];
+    const b = wheelPositions[1];
+    const c = wheelPositions[2];
+    const d = wheelPositions[3];
+
+    const pitch = (c.y + d.y - (a.y + b.y)) * 0.5;
+    const roll = (b.y - a.y + d.y - c.y) * 0.5;
+
+    const averageYPos = 0.15 + (a.y + b.y + c.y + d.y) / 7;
+    wheelPRY.current = [pitch, roll, averageYPos + jumpOffset.current * 0.1];
+  }
+  useFrame(({}, delta) => {
+    rotateWheels(delta);
+    stickWheelsToGround(delta);
+    const wheelPositions = getWheelPositions();
+    moveAndRotateKart(wheelPositions);
+  });
   return (
-    <group  dispose={null}>
-      <mesh ref={wheel0}
+    <group dispose={null}>
+      <mesh
+        name="wheel"
+        castShadow
+        receiveShadow
+        ref={wheel0}
         position={[-0.35, -0.079, 0.35]}
         geometry={nodes.wheel_3.geometry}
         material={materials.m_Tire}
         rotation={[Math.PI, 0, Math.PI]}
         scale={0.522}
       />
-      <mesh ref={wheel1}
+      <mesh
+        name="wheel"
+        castShadow
+        receiveShadow
+        ref={wheel1}
         position={[0.35, -0.079, 0.35]}
         geometry={nodes.wheel_3.geometry}
         material={materials.m_Tire}
@@ -59,14 +156,22 @@ export function Wheels({speed, inputTurn}) {
         scale={0.522}
       />
       <group ref={frontWheels}>
-        <mesh ref={wheel2}
+        <mesh
+          name="wheel"
+          castShadow
+          receiveShadow
+          ref={wheel2}
           position={[-0.35, -0.095, -0.37]}
           geometry={nodes.wheel_3.geometry}
           material={materials.m_Tire}
           rotation={[Math.PI, 0, Math.PI]}
           scale={0.45}
         />
-        <mesh ref={wheel3}
+        <mesh
+          name="wheel"
+          castShadow
+          receiveShadow
+          ref={wheel3}
           position={[0.35, -0.095, -0.37]}
           geometry={nodes.wheel_3.geometry}
           material={materials.m_Tire}
@@ -74,6 +179,10 @@ export function Wheels({speed, inputTurn}) {
           scale={0.45}
         />
       </group>
+      <group ref={wheel0Base} position={[-0.35, -0.079, 0.35]} />
+      <group ref={wheel1Base} position={[0.35, -0.079, 0.35]} />
+      <group ref={wheel2Base} position={[-0.35, -0.095, -0.37]} />
+      <group ref={wheel3Base} position={[0.35, -0.095, -0.37]} />
     </group>
   );
 }

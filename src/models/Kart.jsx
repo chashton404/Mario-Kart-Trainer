@@ -109,8 +109,9 @@ export function Kart({
     wheelBase.current.getWorldPosition(origin);
   
     raycaster.set(origin, direction);
-    raycaster.far = 3;
+    raycaster.far = 5;
     raycaster.firstHitOnly = true;
+    raycaster.layers.set(1);
   
     const intersects = raycaster.intersectObjects(scene.children, true);
   
@@ -188,7 +189,7 @@ export function Kart({
 
     bodyRef.current.rotation.x = pitch;
 
-    bodyRef.current.rotation.z = roll;
+    // bodyRef.current.rotation.z = roll;
 
     bodyRef.current.position.y = averageYPos + jumpOffset.current * 0.1;
   }

@@ -212,11 +212,12 @@ export const PlayerController = () => {
       delta
     );
 
-    camera.lookAt(cameraLookAtRef.current.getWorldPosition(new Vector3()));
+    camera.lookAt(kartRef.current.getWorldPosition(new Vector3()));
     camera.position.lerp(
       cameraGroupRef.current.getWorldPosition(new Vector3()),
       24 * delta
     );
+    
 
     // const body = useGameStore.getState().body;
     // if(body){
@@ -256,6 +257,8 @@ export const PlayerController = () => {
         gamepadRef.current.buttons[7].pressed;
       gamepadButtons.x = gamepadRef.current.axes[0];
     }
+    const time = state.clock.getElapsedTime();
+
     updateSpeed(forward, backward, delta);
     rotatePlayer(left, right, player, joystick.x, delta);
     updatePlayer(player, speedRef.current, camera, kart, delta);
@@ -269,7 +272,7 @@ export const PlayerController = () => {
     <>
       <group></group>
       <group ref={playerRef}>
-        <group ref={cameraGroupRef} position={[0, 2, 5]}></group>
+        <group ref={cameraGroupRef} position={[0, 1, 5]}></group>
 
 {/* <OrbitControls/> */}
         <group ref={kartRef}>

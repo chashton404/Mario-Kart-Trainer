@@ -10,9 +10,10 @@ import { useGLTF, useAnimations } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
 import { LoopOnce, LoopRepeat } from "three";
 import { Wheels } from "./Wheels";
+import { damp } from "three/src/math/MathUtils.js";
 
 const animationsNames = ["IDLE-KART", "TURN-LEFT", "TURN-RIGHT", "wind"];
-export function Model({ speed, inputTurn }) {
+export function Model({ speed, inputTurn, driftDirection, driftPower, backWheelOffset, jumpOffset }) {
   const group = React.useRef();
   const { scene, animations } = useGLTF("./models/witch-transformed.glb");
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -20,17 +21,10 @@ export function Model({ speed, inputTurn }) {
   const { actions } = useAnimations(animations, group);
 
   const windActionRef = useRef();
+  const wheelsRef = useRef(null);
   const currentAction = useRef();
-
-    const wheel3 = useRef(null);
-  const wheel2 = useRef(null);
-  const wheel1 = useRef(null);
-  const wheel0 = useRef(null);
-  
-  const wheel0Base = useRef(null)
-  const wheel1Base = useRef(null)
-  const wheel2Base = useRef(null)
-  const wheel3Base = useRef(null)
+  const sceneRef = useRef(null);
+  const wheelPRY = useRef(null);
 
 const playAction = (name, loopOnce = false) => {
   if (!actions || !actions[name]) return;
@@ -60,6 +54,12 @@ const playAction = (name, loopOnce = false) => {
     console.log(animations);
     currentAction.current = actions["IDLE-KART"].play();
     windActionRef.current = actions["wind"].play();
+    sceneRef.current.traverse((obj) => {
+      if(obj.isMesh){
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+      }
+    })
     // actions.play('IDLE-KART')
   }, [actions]);
 
@@ -73,10 +73,25 @@ const playAction = (name, loopOnce = false) => {
     } else {
       playAction("IDLE-KART", false);
     }
+
+    if (wheelPRY.current) {
+      
+      sceneRef.current.rotation.x = wheelPRY.current[0];
+      sceneRef.current.rotation.z = wheelPRY.current[1];
+      sceneRef.current.position.y = damp(sceneRef.current.position.y, wheelPRY.current[2], 24, delta);
+    }
+       group.current.rotation.y = damp(
+        group.current.rotation.y,
+        driftDirection.current * 0.4,
+        4, delta
+      );
   });
   return (
-    <group ref={group} dispose={null} position={[0, -1.13, 0]} scale={2}>
-      <group name="Scene">
+    <group ref={group} dispose={null} position={[0, 0, 0]} scale={2}>
+      <group ref={wheelsRef}>
+        <Wheels speed={speed} inputTurn={inputTurn} driftPower={driftPower} jumpOffset={jumpOffset} wheelPRY={wheelPRY} backWheelOffset={backWheelOffset} />
+      </group>
+      <group ref={sceneRef} name="Scene">
         <group name="rig">
           <primitive object={nodes.root} />
           <primitive object={nodes["MCH-torsoparent"]} />
@@ -108,7 +123,7 @@ const playAction = (name, loopOnce = false) => {
           rotation={[-Math.PI, 0, -Math.PI]}
           scale={0.522}
         /> */}
-        <Wheels speed={speed} inputTurn={inputTurn} />
+        
         <skinnedMesh
           castShadow
           receiveShadow

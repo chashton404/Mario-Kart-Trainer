@@ -14,7 +14,7 @@ export const Composer = () => {
     <EffectComposer disableNormalPass multisampling={false}>
       <ColorGrading/>
 
-      <Bloom luminanceThreshold={1.} intensity={0.5} mipmapBlur />
+      <Bloom luminanceThreshold={0.} intensity={0.25} mipmapBlur />
       {/* <TiltShift2 blur={0.1}/> */}
       {/* <N8AO  aoRadius={50} distanceFalloff={0.2} intensity={40} screenSpaceRadius halfRes/> */}
     </EffectComposer>
