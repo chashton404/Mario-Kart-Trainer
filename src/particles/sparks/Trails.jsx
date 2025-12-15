@@ -12,7 +12,7 @@ export const Trails = ({ dash = 0.9, radius = 1, left}) => {
     const initialPos = new THREE.Vector3(0, 0, 0)
     const dirX = Math.random() * radius * 5
     const dirY = 3 + Math.random() * 2
-    const dirZ = Math.random() * radius
+    const dirZ = -Math.random() * radius
     pts.push(initialPos.clone())
 
     for (let j = 1; j < 10; j++) {
@@ -53,7 +53,7 @@ function Fatline({ curve, width, color, speed, dash, delay, radius, left}) {
         const initialPos = new THREE.Vector3(0, 0, 0)
         const dirX = Math.random() * 5
         const dirY = 2 + Math.random() * 3
-        const dirZ = 1 + Math.random() * radius
+        const dirZ = 1 + Math.random() * -radius
         pts.push(initialPos.clone())
 
         for (let j = 1; j < 10; j++) {

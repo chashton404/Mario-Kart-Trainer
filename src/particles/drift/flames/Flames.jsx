@@ -19,7 +19,8 @@ export const Flames = () => {
       new ShaderMaterial({
         uniforms: { 
           uCurrentTime: { value: 0 },
-          color: { value: new Color(0xFFA22B).multiplyScalar(4)},
+          uColorStart: {value: new Color("#2149ff").multiplyScalar(100)},
+          color: { value: new Color(0xFFA22B).multiplyScalar(50)},
           uTimeOffset: { value: 0 },
           noiseTexture: { value: null }
         },        
@@ -42,7 +43,7 @@ export const Flames = () => {
   }, [material.uniforms.noiseTexture]);
 
   const lastFiredTimeRef = useRef(0);
-  const addInterval = 0.03;
+  const addInterval = 0.01;
   const scaleTarget = 2;
 
   useFrame((state, delta) => {
@@ -78,8 +79,8 @@ export const Flames = () => {
     ref.current.updateInstances((obj) => {
       obj.currentTime += delta;
       obj.setUniform('uCurrentTime', obj.currentTime);
-      obj.scale.lerp(new Vector3(scaleTarget, scaleTarget * 2, scaleTarget), 1 * delta);
-      obj.position.y += delta * 13;
+      // obj.scale.lerp(new Vector3(scaleTarget, scaleTarget * 2, scaleTarget), 1 * delta);
+      obj.position.y += delta * 12;
 
       const toCamera = new Vector3().subVectors(camera.getWorldPosition(new Vector3()), obj.position).normalize();
     
@@ -87,14 +88,14 @@ export const Flames = () => {
       const particleQuaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 0, 1), toCamera);
       
       const randomRotationQuaternion = new Quaternion().setFromEuler(new Euler(0, 0, obj.randomZRotation));
-      obj.scale.lerp(obj.scale, 0, delta * 30);
+      obj.scale.lerp(new Vector3(0.,0.,0.), delta * 10);
       
       particleQuaternion.multiply(randomRotationQuaternion);
       
       obj.quaternion.copy(particleQuaternion);
       
 
-      if (obj.currentTime > .5) {
+      if (obj.currentTime > 5.) {
         obj.remove();
       }
     });
