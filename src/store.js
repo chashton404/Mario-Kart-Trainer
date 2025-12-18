@@ -28,5 +28,10 @@ export const useGameStore = create((set) => ({
   gamepad: null,
   setGamepad: (gamepad) => set({gamepad: gamepad}),
   isOnDirt:null,
-  setIsOnDirt: (isOnDirt) => set({isOnDirt: isOnDirt})
+  setIsOnDirt: (isOnDirt) => set({isOnDirt: isOnDirt}),
+  // Collision system
+  collider: null,
+  setCollider: (collider) => set({ collider }),
+  trackScene: null,
+  setTrackScene: (trackScene) => set({ trackScene }),
 }));

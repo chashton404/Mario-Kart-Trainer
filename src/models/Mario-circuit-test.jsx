@@ -27,7 +27,7 @@ export function Track(props) {
       <mesh layers={1} name="ground" receiveShadow geometry={nodes.Object_10.geometry} material={materials.material_5} />
       <mesh layers={1} name="ground dirt" receiveShadow geometry={nodes.Object_11.geometry} material={materials.material_6} />
       <mesh layers={1} name="ground" receiveShadow geometry={nodes.Object_12.geometry} material={materials.material_7} />
-      <mesh layers={1} name="ground" receiveShadow geometry={nodes.Object_13.geometry} material={materials.material_8} />
+      <mesh layers={1} name="wall barrier" receiveShadow geometry={nodes.Object_13.geometry} material={materials.material_8} />
       <mesh layers={1} name="ground" receiveShadow geometry={nodes.Object_18.geometry} material={materials.material_12} />
       <mesh layers={1} name="ground" receiveShadow geometry={nodes.Object_22.geometry} material={materials.material_16} />
       <mesh layers={1} ref={trackRef} name="ground" receiveShadow geometry={nodes.Object_24.geometry} material={materials.material_18} />
