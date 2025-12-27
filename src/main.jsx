@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { WebGPUCanvas } from './WebGPUCanvas.jsx'
 import { MobileControls } from './mobile/MobileControls.jsx'
-import { LoadingScreen } from './LoadingScreen.jsx'
 
 createRoot(document.getElementById('root')).render(
 
@@ -12,7 +11,6 @@ createRoot(document.getElementById('root')).render(
       <Suspense fallback={false}>
       <WebGPUCanvas />
       </Suspense>
-      <LoadingScreen />
       <div className="version">v0.3.4</div>
     </div>
 )
