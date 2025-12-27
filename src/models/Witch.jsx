@@ -8,15 +8,11 @@ import React, { useEffect, useRef } from "react";
 import { useFrame, useGraph } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { SkeletonUtils } from "three-stdlib";
-import { LoopOnce, LoopRepeat, Vector3 } from "three";
+import { LoopOnce, LoopRepeat } from "three";
 import { Wheels } from "./Wheels";
 import { damp } from "three/src/math/MathUtils.js";
-import VFXEmitter from "../wawa-vfx/VFXEmitter.tsx";
-import { useGameStore } from "../store.js";
-import Flames from "../particles/drift/flames/Flames.jsx";
 
-const animationsNames = ["IDLE-KART", "TURN-LEFT", "TURN-RIGHT", "wind"];
-export function Model({ speed, inputTurn, driftDirection, driftPower, backWheelOffset, jumpOffset }) {
+export function Model({ speed, inputTurn, jumpOffset }) {
   const group = React.useRef();
   const { scene, animations } = useGLTF("./models/witch-transformed.glb");
   const clone = React.useMemo(() => SkeletonUtils.clone(scene), [scene]);
@@ -30,14 +26,6 @@ export function Model({ speed, inputTurn, driftDirection, driftPower, backWheelO
   const wheelPRY = useRef(null);
   
   const kartBodyRef = useRef(null);
-  
-  // Flame refs
-  const smoke1Ref = useRef(null);
-  const smoke2Ref = useRef(null);
-  const flamePositionLeftRef = useRef(null);
-  const flamePositionRightRef = useRef(null);
-  
-  const setFlamePositions = useGameStore((state) => state.setFlamePositions);
 
 const playAction = (name, loopOnce = false) => {
   if (!actions || !actions[name]) return;
@@ -94,30 +82,9 @@ const playAction = (name, loopOnce = false) => {
       sceneRef.current.rotation.z = wheelPRY.current[1];
       sceneRef.current.position.y = damp(sceneRef.current.position.y, wheelPRY.current[2], 24, delta);
     }
-       group.current.rotation.y = damp(
-        group.current.rotation.y,
-        driftDirection.current * 0.4,
-        4, delta
-      );
-
       kartBodyRef.current.rotation.x = -Math.PI + Math.sin(time* 80) * 0.003;
 
 
-      if(speed.current < 10) {
-        smoke1Ref.current?.startEmitting();
-        smoke2Ref.current?.startEmitting();
-      } else {
-        smoke1Ref.current?.stopEmitting();
-        smoke2Ref.current?.stopEmitting();
-      }
-      
-
-      if (flamePositionLeftRef.current && flamePositionRightRef.current) {
-        setFlamePositions([
-          flamePositionLeftRef.current.position,
-          flamePositionRightRef.current.position,
-        ]);
-      }
   });
   return (
     <group ref={group} dispose={null} position={[0, 0, 0]} scale={2}>
@@ -125,11 +92,8 @@ const playAction = (name, loopOnce = false) => {
         <Wheels 
           speed={speed} 
           inputTurn={inputTurn} 
-          driftDirection={driftDirection}
-          driftPower={driftPower} 
           jumpOffset={jumpOffset} 
           wheelPRY={wheelPRY} 
-          backWheelOffset={backWheelOffset} 
         />
       </group>
       <group ref={sceneRef} name="Scene">
@@ -156,66 +120,6 @@ const playAction = (name, loopOnce = false) => {
           scale={0.522}
           position-y={0.01}
         >
-          <Flames />
-          {/* Flame emitters */}
-          <group
-            position={[0.5, 0.55, -1.5]}
-            rotation-x={Math.PI / 9}
-            ref={flamePositionLeftRef}
-          >
-            <VFXEmitter
-              ref={smoke1Ref}
-              emitter="smoke"
-              settings={{
-                duration: 0.02,
-                delay: 0.1,
-                nbParticles: 1,
-                spawnMode: "time",
-                loop: true,
-                startPositionMin: [0, 0, 0],
-                startPositionMax: [0, 0, 0],
-                startRotationMin: [0, 0, -1],
-                startRotationMax: [0, 0, 1],
-                particlesLifetime: [0.2, 0.4],
-                speed: [0.5, 1.5],
-                colorStart: ["#ffffff"],
-                directionMin: [-0.1, 0, 0],
-                directionMax: [0.1, 0.01, -0.5],
-                rotationSpeedMin: [0, 0, -1],
-                rotationSpeedMax: [0, 0, 1],
-                size: [0.5, 1],
-              }}
-            />
-          </group>
-          <group
-            position={[-0.5, 0.55, -1.5]}
-            rotation-x={Math.PI / 9}
-            ref={flamePositionRightRef}
-          >
-            <VFXEmitter
-              ref={smoke2Ref}
-              emitter="smoke"
-              settings={{
-                duration: 0.02,
-                delay: 0.1,
-                nbParticles: 1,
-                spawnMode: "time",
-                loop: true,
-                startPositionMin: [0, 0, 0],
-                startPositionMax: [0, 0, 0],
-                startRotationMin: [0, 0, -1],
-                startRotationMax: [0, 0, 1],
-                particlesLifetime: [0.2, 0.4],
-                speed: [0.5, 1.5],
-                colorStart: ["#ffffff"],
-                directionMin: [-0.1, 0, 0],
-                directionMax: [0.1, 0.01, -0.5],
-                rotationSpeedMin: [0, 0, -1],
-                rotationSpeedMax: [0, 0, 1],
-                size: [0.5, 1],
-              }}
-            />
-          </group>
         </mesh>
         {/* <mesh
           castShadow

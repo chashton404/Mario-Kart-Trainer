@@ -1,20 +1,11 @@
-import {
-  Bvh,
-  OrbitControls,
-  KeyboardControls,
-  Preload,
-  useTexture,
-} from "@react-three/drei";
-import { Suspense, useEffect } from "react";
+import { KeyboardControls, useTexture } from "@react-three/drei";
+import { useEffect } from "react";
 import { TrackScene } from "./TrackScene";
 import { Lighting } from "./misc/Lighting";
-import VFXParticles from "./wawa-vfx/VFXParticles";
 import { Composer } from "./Composer";
 import { useThree } from "@react-three/fiber";
-import { Skid } from "./particles/drift/Skid";
 import { Leva } from "leva";
 import { useGameStore } from "./store";
-import { PlayroomStarter } from "./PlayroomStarter";
 
 export const App = () => {
   const controls = [
@@ -25,7 +16,6 @@ export const App = () => {
     { name: "jump", keys: ["Space"] },
   ];
 
-  const smokeTexture = useTexture("./textures/particles/smoke.png");
   const noiseTexture = useTexture("./textures/noise.png");
 
   const setNoiseTexture = useGameStore((state) => state.setNoiseTexture);
@@ -42,49 +32,6 @@ export const App = () => {
 
   return (
     <>
-    <PlayroomStarter/>
-      <VFXParticles
-        name="confettis"
-        geometry={<boxGeometry args={[0.5, 1, 0.01]} />}
-        settings={{
-          fadeAlpha: [0, 1],
-          fadeSize: [1, 0],
-          intensity: 3,
-          nbParticles: 10000,
-          renderMode: "mesh",
-          gravity: [0, 0, 0],
-          frustumCulled: false,
-        }}
-        // alphaMap={smokeTexture}
-      />
-
-      <VFXParticles
-        name="smoke"
-        settings={{
-          fadeAlpha: [1, 0],
-          fadeSize: [0.5, 1],
-          intensity: 0.5,
-          nbParticles: 100,
-          renderMode: "billboard",
-          gravity: [0, 0, 0],
-          frustumCulled: false,
-        }}
-        alphaMap={smokeTexture}
-      />
-      <VFXParticles
-        name="dust"
-        settings={{
-          fadeAlpha: [1, 0],
-          fadeSize: [0, 1],
-          intensity: 10,
-          nbParticles: 1000,
-          renderMode: "billboard",
-          gravity: [0, 1, 0],
-          frustumCulled: false,
-        }}
-        alphaMap={smokeTexture}
-      />
-      {/* <Skid/> */}
       <KeyboardControls map={controls}>
         <TrackScene />
 

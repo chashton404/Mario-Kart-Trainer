@@ -1,5 +1,4 @@
-import { Kart } from "./models/Kart";
-import { useKeyboardControls, OrbitControls } from "@react-three/drei";
+import { useKeyboardControls } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { useRef, useEffect } from "react";
 import { Vector3, MeshBasicMaterial } from "three";
@@ -8,9 +7,7 @@ import { kartSettings } from "./constants";
 import { useGameStore } from "./store";
 import gsap from "gsap";
 import { useTouchScreen } from "./hooks/useTouchScreen";
-import VFXEmitter from "./wawa-vfx/VFXEmitter";
 import { Model } from "./models/Witch";
-import { me } from "playroomkit";
 import { buildCollider, checkCollision, kartColliderSettings } from "./utils/KartCollision";
 import { MeshBVHHelper } from "three-mesh-bvh";
 
@@ -19,26 +16,13 @@ const isDebugMode = typeof window !== "undefined" && window.location.search.incl
 if (isDebugMode) console.log("🔧 Debug mode enabled - collision visualization active");
 
 export const PlayerController = () => {
-  const rbRef = useRef(null);
   const playerRef = useRef(null);
   const cameraGroupRef = useRef(null);
   const cameraLookAtRef = useRef(null);
   const kartRef = useRef(null);
   const jumpIsHeld = useRef(false);
-  const driftDirections = {
-    none: 0,
-    left: 1.4,
-    right: -1.4,
-  };
   const jumpOffset = useRef(0);
-  const driftDirection = useRef(driftDirections.none);
-  const driftPower = useRef(0);
-  const turbo = useRef(0);
   const isJumping = useRef(false);
-  const backWheelOffset = useRef({
-    left: 0,
-    right: 0,
-  });
   const gamepadRef = useRef(null);
   const inputTurn = useRef(0);
 
@@ -150,25 +134,6 @@ export const PlayerController = () => {
       repeat: 1,
       onComplete: () => {
         isJumping.current = false;
-        setTimeout(() => {
-          if (driftDirection.current !== 0) {
-            gsap.killTweensOf(backWheelOffset.current);
-            gsap.to(backWheelOffset.current, {
-              left: driftDirection.current === driftDirections.left ? 0.2 : 0,
-              right: driftDirection.current === driftDirections.right ? 0.2 : 0,
-              duration: 0.3,
-              ease: "power4.out",
-              onComplete: () => {
-                gsap.to(backWheelOffset.current, {
-                  left: 0,
-                  right: 0,
-                  duration: 0.8,
-                  ease: "bounce.out",
-                });
-              },
-            });
-          }
-        }, 100);
       },
     });
   };
@@ -184,10 +149,8 @@ export const PlayerController = () => {
       return;
     }
 
-    const maxSpeed = kartSettings.speed.max + (turbo.current > 0 ? 40 : 0);
-    maxSpeed > kartSettings.speed.max
-      ? setIsBoosting(true)
-      : setIsBoosting(false);
+    const maxSpeed = kartSettings.speed.max;
+    setIsBoosting(false);
 
     const gamepadButtons = {
       forward: false,
@@ -212,11 +175,6 @@ export const PlayerController = () => {
       delta
     );
     setSpeed(speedRef.current);
-    if (speedRef.current < 20) {
-      driftDirection.current = driftDirections.none;
-      driftPower.current = 0;
-    }
-    turbo.current -= delta;
   }
 
   function rotatePlayer(left, right, player, joystickX, delta) {
@@ -231,8 +189,7 @@ export const PlayerController = () => {
     inputTurn.current =
       (-gamepadJoystick.x -
         joystickX +
-        (Number(left) - Number(right)) +
-        driftDirection.current) *
+        (Number(left) - Number(right))) *
       0.1;
 
     rotationSpeedRef.current = damp(
@@ -250,36 +207,17 @@ export const PlayerController = () => {
     player.rotation.y = damp(player.rotation.y, targetRotation, 8, delta);
   }
 
-  function jumpPlayer(spaceKey, left, right, joystickX) {
+  function jumpPlayer(spaceKey) {
     if (spaceKey && !jumpIsHeld.current && !isJumping.current) {
       // rb.applyImpulse({ x: 0, y: 45, z: 0 }, true);
 
       jumpAnim();
       isJumping.current = true;
       jumpIsHeld.current = true;
-      driftDirection.current =
-        left || joystickX < 0
-          ? driftDirections.left
-          : right || joystickX > 0
-          ? driftDirections.right
-          : driftDirections.none;
     }
 
     if (!spaceKey) {
       jumpIsHeld.current = false;
-      if (turbo.current <= 0) {
-        turbo.current = useGameStore.getState().boostPower
-          ? useGameStore.getState().boostPower
-          : 0;
-      }
-      driftDirection.current = driftDirections.none;
-      driftPower.current = 0;
-    }
-  }
-
-  function driftPlayer(delta) {
-    if (driftDirection.current !== driftDirections.none) {
-      driftPower.current += delta;
     }
   }
 
@@ -300,7 +238,7 @@ export const PlayerController = () => {
 
     kart.rotation.y = damp(
       kart.rotation.y,
-      angle * 1.3 + driftDirection.current * 0.1,
+      angle * 1.3,
       6,
       delta
     );
@@ -349,14 +287,8 @@ export const PlayerController = () => {
     setPlayerPosition(player.position);
   }
 
-  const updatePlayroomState = () =>{
-    if(me()){
-      me().setState("position", playerRef.current.position )
-    }
-  }
-
   useFrame((state, delta) => {
-    if (!playerRef.current && !rbRef.current) return;
+    if (!playerRef.current) return;
     const player = playerRef.current;
     const cameraGroup = cameraGroupRef.current;
     const kart = kartRef.current;
@@ -380,16 +312,12 @@ export const PlayerController = () => {
         gamepadRef.current.buttons[7].pressed;
       gamepadButtons.x = gamepadRef.current.axes[0];
     }
-    const time = state.clock.getElapsedTime();
-
     updateSpeed(forward, backward, delta);
     rotatePlayer(left, right, player, joystick.x, delta);
     updatePlayer(player, speedRef.current, camera, kart, delta);
     const isJumpPressed = jumpButtonPressed || jump || gamepadButtons.jump;
-    jumpPlayer(isJumpPressed, left, right, joystick.x || gamepadButtons.x);
-    driftPlayer(delta);
+    jumpPlayer(isJumpPressed);
     getGamepad();
-    updatePlayroomState();
   });
 
   return (
@@ -400,49 +328,7 @@ export const PlayerController = () => {
 
 {/* <OrbitControls/> */}
         <group ref={kartRef}>
-          <VFXEmitter
-            emitter="confettis"
-            settings={{
-              duration: 0.5,
-              delay: 0.1,
-              nbParticles: 1000,
-              spawnMode: "time",
-              loop: true,
-              startPositionMin: [-100, 0, -100],
-              startPositionMax: [100, 10, 100],
-              startRotationMin: [-1, -1, -1],
-              startRotationMax: [1, 1, 1],
-              particlesLifetime: [3, 4],
-              speed: [1, 3],
-              colorStart: [
-                "#FF3F3F",
-                "#FF9A00",
-                "#FFE600",
-                "#32FF6A",
-                "#00E5FF",
-                "#6A5CFF",
-                "#FF5CFF",
-                "#FF66B3",
-                "#00FFB3",
-                "#FFD700",
-              ],
-              directionMin: [-1, -1, -1],
-              directionMax: [1, 0, 1],
-              rotationSpeedMin: [-10, -10, -10],
-              rotationSpeedMax: [10, 10, 10],
-              size: [0.5, 1],
-            }}
-          />
-
-          {/* <Kart
-            speed={speedRef}
-            driftDirection={driftDirection}
-            driftPower={driftPower}
-            jumpOffset={jumpOffset}
-            backWheelOffset={backWheelOffset}
-            inputTurn={inputTurn}
-          /> */}
-          <Model speed={speedRef} driftDirection={driftDirection} driftPower={driftPower} jumpOffset={jumpOffset} backWheelOffset={backWheelOffset} inputTurn={inputTurn} />
+          <Model speed={speedRef} jumpOffset={jumpOffset} inputTurn={inputTurn} />
 
           {/* Debug: Show player collision capsule */}
           {isDebugMode && (

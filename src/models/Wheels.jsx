@@ -4,23 +4,16 @@ Command: npx gltfjsx@6.5.3 --transform wheel.glb
 Files: wheel.glb [328.66KB] > C:\Users\mouli\mk3\public\models\wheel-transformed.glb [26.7KB] (92%)
 */
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 import { damp } from "three/src/math/MathUtils.js";
 import { Raycaster, Vector3 } from "three";
-import { Sparks } from "../particles/sparks/Sparks";
-import { Glow } from "../particles/drift/glow/Glow";
-import { Skate } from "../particles/drift/Skate/Skate";
-import { Trails } from "../particles/sparks/Trails";
-import { KartDust } from "./KartDust";
-import { getDriftLevel } from "../constants";
-import { useGameStore } from "../store";
 
 const raycaster = new Raycaster();
 const direction = new Vector3(0, -1, 0);
 
-export function Wheels({ speed, inputTurn, driftDirection, driftPower, jumpOffset, backWheelOffset, wheelPRY }) {
+export function Wheels({ speed, inputTurn, jumpOffset, wheelPRY }) {
   const { nodes, materials } = useGLTF("./models/wheel-transformed.glb");
   const wheel3 = useRef(null);
   const wheel2 = useRef(null);
@@ -34,46 +27,25 @@ export function Wheels({ speed, inputTurn, driftDirection, driftPower, jumpOffse
   const wheel2Base = useRef(null);
   const wheel3Base = useRef(null);
 
-  const sparksLeftRef = useRef(null);
-  const sparksRightRef = useRef(null);
-  const glow1Ref = useRef(null);
-  const glow2Ref = useRef(null);
-  const skate1Ref = useRef(null);
-  const skate2Ref = useRef(null);
-
-  const leftParticles = useRef(null);
-  const rightParticles = useRef(null);
-
-  const isDriftingRef = useRef(false);
-
-  // Dust states for each wheel
-  const dustWheelStates = useRef([
-    { position: new Vector3(), shouldEmit: false },
-    { position: new Vector3(), shouldEmit: false },
-    { position: new Vector3(), shouldEmit: false },
-    { position: new Vector3(), shouldEmit: false },
-  ]);
-
-  const setBoostPower = useGameStore((state) => state.setBoostPower);
-  const setDriftLevel = useGameStore((state) => state.setDriftLevel);
-
   const scene = useThree((state) => state.scene);
 
-  useEffect(() => {
-    if (glow1Ref.current && glow2Ref.current) {
-      glow1Ref.current.setOpacity(0);
-      glow2Ref.current.setOpacity(0);
-    }
-  }, []);
+  const rotateWheels = (delta) => {
+    const rotationSpeed = -speed.current * 0.01;
+    wheel0.current.rotation.x += rotationSpeed;
+    wheel1.current.rotation.x += rotationSpeed;
+    wheel2.current.rotation.x += rotationSpeed;
+    wheel3.current.rotation.x += rotationSpeed;
 
-  function getGroundPosition(wheelBase, wheel, offset = 0, wheelIndex, delta) {
+    yRotation.current = damp(yRotation.current, inputTurn.current * 2, 4, delta);
+    frontWheels.current.rotation.y = yRotation.current;
+  };
+
+  function getGroundPosition(wheelBase, wheel, delta) {
     const origin = new Vector3();
-
     wheelBase.current.getWorldPosition(origin);
 
     raycaster.set(origin, direction);
     raycaster.far = 3;
-
     raycaster.layers.set(1);
     raycaster.firstHitOnly = true;
 
@@ -84,125 +56,27 @@ export function Wheels({ speed, inputTurn, driftDirection, driftPower, jumpOffse
 
     wheel.current.position.y = damp(
       wheel.current.position.y,
-      hit.point.y + 0.93 + jumpOffset.current + offset,
+      hit.point.y + 0.93 + jumpOffset.current,
       24,
       delta
     );
-
-    // Check if on dirt for dust effects
-    wheel.current.isOnDirt = hit.object.name.includes("dirt") &&
-      speed.current > 5 &&
-      jumpOffset.current === 0;
-
-    // Also emit dust during drift on back wheels (index 0 and 1)
-    if ((wheelIndex === 0 || wheelIndex === 1) && driftPower.current > 0.01 && jumpOffset.current === 0 && offset < 0.05) {
-      wheel.current.isOnDirt = true;
-    }
   }
 
   function getWheelPositions() {
-    const wheelPositions = [wheel0, wheel1, wheel2, wheel3].map((wheel, index) => {
-      const position = wheel.current.getWorldPosition(new Vector3());
-      const localPos = wheel.current.position;
-
-      // Update dust states - copy position so it tracks wheel height
-      dustWheelStates.current[index].position.copy(localPos);
-      dustWheelStates.current[index].shouldEmit = wheel.current.isOnDirt || false;
-
-      return position;
-    });
-    return wheelPositions;
-  }
-
-  const rotateWheels = (delta) => {
-    const rotationSpeed = -speed.current * 0.01;
-    wheel0.current.rotation.x += rotationSpeed;
-    wheel1.current.rotation.x += rotationSpeed;
-    wheel2.current.rotation.x += rotationSpeed;
-    wheel3.current.rotation.x += rotationSpeed;
-
-    yRotation.current = damp(
-      yRotation.current,
-      inputTurn.current * 2,
-      4,
-      delta
+    return [wheel0, wheel1, wheel2, wheel3].map((wheel) =>
+      wheel.current.getWorldPosition(new Vector3())
     );
-
-    frontWheels.current.rotation.y = yRotation.current;
-  };
-
-  function animateDriftParticles(isDrifting, driftLevel) {
-    // Only update state when isDrifting changes (like Kart.jsx)
-    if (isDrifting !== isDriftingRef.current) {
-      isDriftingRef.current = isDrifting;
-      if (isDrifting) {
-        
-        sparksLeftRef?.current?.setEmitState(true);
-        sparksRightRef?.current?.setEmitState(true);
-        glow1Ref?.current?.setOpacity(1);
-        glow2Ref?.current?.setOpacity(1);
-        skate1Ref?.current?.setOpacity(1);
-        skate2Ref?.current?.setOpacity(1);
-      } else {
-        sparksLeftRef?.current?.setEmitState(false);
-        sparksRightRef?.current?.setEmitState(false);
-        glow1Ref?.current?.setOpacity(0);
-        glow2Ref?.current?.setOpacity(0);
-        skate1Ref?.current?.setOpacity(0);
-        skate2Ref?.current?.setOpacity(0);
-      }
-    }
-
-    // Update colors/levels while drifting
-    if (isDrifting) {
-      glow1Ref?.current?.setColor(driftLevel.color);
-      glow2Ref?.current?.setColor(driftLevel.color);
-      glow1Ref?.current?.setLevel(driftLevel.threshold);
-      glow2Ref?.current?.setLevel(driftLevel.threshold);
-      sparksLeftRef?.current?.setColor(driftLevel.color);
-      sparksRightRef?.current?.setColor(driftLevel.color);
-    }
-
-    setDriftLevel(driftLevel);
-    setBoostPower(driftLevel.threshold / 2);
   }
 
   const stickWheelsToGround = (delta) => {
-    getGroundPosition(
-      wheel0Base,
-      wheel0,
-      backWheelOffset.current.left,
-      0,
-      delta
-    );
-    getGroundPosition(
-      wheel1Base,
-      wheel1,
-      backWheelOffset.current.right,
-      1,
-      delta
-    );
-    getGroundPosition(
-      wheel2Base,
-      wheel2,
-      backWheelOffset.current.left,
-      2,
-      delta
-    );
-    getGroundPosition(
-      wheel3Base,
-      wheel3,
-      backWheelOffset.current.right,
-      3,
-      delta
-    );
+    getGroundPosition(wheel0Base, wheel0, delta);
+    getGroundPosition(wheel1Base, wheel1, delta);
+    getGroundPosition(wheel2Base, wheel2, delta);
+    getGroundPosition(wheel3Base, wheel3, delta);
   };
 
   function moveAndRotateKart(wheelPositions) {
-    const a = wheelPositions[0];
-    const b = wheelPositions[1];
-    const c = wheelPositions[2];
-    const d = wheelPositions[3];
+    const [a, b, c, d] = wheelPositions;
 
     const pitch = (c.y + d.y - (a.y + b.y)) * 0.5;
     const roll = (b.y - a.y + d.y - c.y) * 0.5;
@@ -216,30 +90,10 @@ export function Wheels({ speed, inputTurn, driftDirection, driftPower, jumpOffse
     stickWheelsToGround(delta);
     const wheelPositions = getWheelPositions();
     moveAndRotateKart(wheelPositions);
-
-    // Use the same condition as Kart.jsx: drift only when direction is set AND landed
-    const isDrifting = !!driftDirection.current && jumpOffset.current === 0;
-    const driftLevel = getDriftLevel(driftPower.current);
-    animateDriftParticles(isDrifting, driftLevel);
-
-    // Update particle group positions to follow wheel0 and wheel1 in real time
-    leftParticles.current.position.set(
-      wheel0.current.position.x - 0.1,
-      wheel0.current.position.y - 0.1,
-      wheel0.current.position.z + 0.1
-    );
-    rightParticles.current.position.set(
-      wheel1.current.position.x + 0.1,
-      wheel1.current.position.y - 0.1,
-      wheel1.current.position.z + 0.1
-    );
   });
 
   return (
     <group dispose={null}>
-      {/* Wheel dust effects */}
-      <KartDust wheelStates={dustWheelStates.current} />
-
       {/* Back wheels */}
       <mesh
         name="wheel"
@@ -263,26 +117,6 @@ export function Wheels({ speed, inputTurn, driftDirection, driftPower, jumpOffse
         rotation={[Math.PI, Math.PI, Math.PI]}
         scale={0.522}
       />
-
-      {/* Drift particle effects - positioned relative to back wheels */}
-      <group>
-        <group ref={leftParticles}>
-          <Glow ref={glow1Ref} driftDirection={driftDirection} />
-          <Sparks ref={sparksLeftRef} />
-          <Trails />
-          <group scale={0.5} position={[0.11, 0.13, 0.1]}>
-            <Skate ref={skate1Ref} />
-          </group>
-        </group>
-        <group ref={rightParticles}>
-          <Glow ref={glow2Ref} driftDirection={driftDirection} />
-          <Sparks ref={sparksRightRef} left={true} />
-          <Trails left={true} />
-          <group scale={0.5} position={[-0.11, 0.13, 0.1]}>
-            <Skate ref={skate2Ref} />
-          </group>
-        </group>
-      </group>
 
       {/* Front wheels */}
       <group ref={frontWheels}>
