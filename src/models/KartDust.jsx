@@ -1,4 +1,3 @@
-import { Dust } from "../particles/Dust";
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGameStore } from "../store";
@@ -23,14 +22,5 @@ export const KartDust = ({ wheelStates }) => {
     });
   })
 
-  return (
-    <>
-      <group>
-        {wheelStates.map((wheel, i) => (
-          <Dust key={i} ref={(el) => (dustRefs.current[i] = el)} />
-        ))}
-      </group>
-    </>
-  );
+  return null;
 };
-

@@ -34,20 +34,14 @@ Short descriptions of the important files in this repo so you can quickly find w
 - `src/models/Wheels.jsx` – simplified wheel rig: raycasts to ground, keeps wheels stuck to terrain, tilts the chassis, and steers front wheels based on input.
 - `src/models/KartDust.jsx` – ties wheel contact states to dust particle emitters via imperative refs.
 - `src/models/Kart.jsx` – legacy kart model with drift VFX (glows/sparks/trails/smoke); currently unused but kept in the repo.
-- `src/particles/Dust.jsx` – dust particle emitter wrapper using the custom VFX system; exposes start/stop and position setters.
+- `src/particles/Dust.jsx` – removed; dust emitters were disabled with the VFX system.
 
 ## Input (mobile & touch)
-- `src/hooks/useTouchScreen.js` – detects touch-capable devices and updates on resize.
-- `src/mobile/MobileControls.jsx` – renders touch controls when on touch screens without a gamepad.
-- `src/mobile/JoystickComponent.jsx` – on-screen joystick that updates the shared joystick state.
-- `src/mobile/Buttons.jsx` – mobile “A” button; toggles the shared jump state on press/release.
+- `src/hooks/useTouchScreen.js` – removed; touch/mobile controls were dropped.
+- `src/mobile/...` – removed; touch controls were dropped.
 
 ## VFX framework
-- `src/wawa-vfx/VFXEmitter.tsx` – reusable emitter component (time/burst spawn, colors, speeds, size, direction) with imperative start/stop controls.
-- `src/wawa-vfx/VFXParticles.tsx` – particle buffer manager; registers named emitters and renders particles.
-- `src/wawa-vfx/VFXStore.ts` – internal store/hooks for managing emitters and particle data.
-- `src/wawa-vfx/VFXBuilder.tsx` – builds emitter configurations and updates particle instances each frame.
-- `src/wawa-vfx/easings.ts`, `src/wawa-vfx/types.ts` – helper types and easing utilities for the VFX system.
+- Removed; custom VFX system and particle emitters were removed from the project.
 
 ## Assets
 - `src/assets/react.svg` – default Vite icon (unused in-game).
