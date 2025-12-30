@@ -104,3 +104,15 @@ canvas{
     transform: translateY(-5px) skewX(-6deg);
   }
 }
+
+.coords {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  color: white;
+  font-family: "DIN 2014";
+  font-size: 14px;
+  background: rgba(0,0,0,0.35);
+  padding: 6px 10px;
+  border-radius: 6px;
+}

@@ -13,7 +13,7 @@ Well aren't you just a nosey person? Jokes. My objective is to create a game tha
 
 ## TO - DO
 - [x] Get rid of drifing, multiplayer and collision logic
-- [ ] Create a basic straight track
+- [x] Create a basic straight track
 - [ ] Wire up a spline on the straight track that the Kart will follow
 - [ ] Get the Kart to follow the spline
 - [ ] Add capability for bluetooth connection

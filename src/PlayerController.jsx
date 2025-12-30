@@ -130,7 +130,8 @@ export const PlayerController = () => {
     player.position.x = desiredX;
     player.position.z = desiredZ;
 
-    setPlayerPosition(player.position);
+    // Clone so Zustand selector sees a new reference and re-renders HUD
+    setPlayerPosition(player.position.clone());
   }
 
   useFrame((state, delta) => {
