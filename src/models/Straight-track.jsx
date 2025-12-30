@@ -20,7 +20,7 @@ export function Track(props) {
     }, [setTrackScene])
 
   return (
-    <group {...props} dispose={null}>
+    <group {...props} dispose={null} position={[0, .6, 0]}>
       <mesh name="mountains" layers={1} castShadow receiveShadow geometry={nodes.Mountains.geometry} material={materials.Mountains} />
       <mesh ref={trackRef} name="road" layers={1} castShadow receiveShadow geometry={nodes.Road.geometry} material={materials.Road} />
       <mesh name="wall" layers={1} castShadow receiveShadow geometry={nodes.Walls.geometry} material={materials.Wall} />
