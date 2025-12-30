@@ -46,13 +46,13 @@ useEffect(() => {
             color={"#FFffff"}
             shadow-bias={-0.0001}
             shadow-mapSize={[2048, 2048]}
-            // layers={1}
+            layers={1}
             
           >
             <orthographicCamera
               attach="shadow-camera"
               near={1}
-              far={20}
+              far={40}
               top={5}
               left={-5}
               right={5}

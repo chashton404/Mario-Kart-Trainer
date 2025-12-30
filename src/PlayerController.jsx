@@ -14,7 +14,6 @@ export const PlayerController = () => {
   const cameraGroupRef = useRef(null);
   const cameraLookAtRef = useRef(null);
   const kartRef = useRef(null);
-  const jumpOffset = useRef(0);
   const gamepadRef = useRef(null);
   const inputTurn = useRef(0);
 
@@ -25,7 +24,6 @@ export const PlayerController = () => {
   const smoothedDirectionRef = useRef(new Vector3(0, 0, -1));
 
   const setPlayerPosition = useGameStore((state) => state.setPlayerPosition);
-  const setIsBoosting = useGameStore((state) => state.setIsBoosting);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const setGamepad = useGameStore((state) => state.setGamepad);
 
@@ -41,7 +39,6 @@ export const PlayerController = () => {
 
   function updateSpeed(forward, backward, delta) {
     const maxSpeed = kartSettings.speed.max;
-    setIsBoosting(false);
 
     const gamepadButtons = {
       forward: false,
@@ -166,9 +163,9 @@ export const PlayerController = () => {
         <group ref={cameraGroupRef} position={[0, 1, 5]}></group>
 
         <group ref={kartRef}>
-          <Kart speed={speedRef} jumpOffset={jumpOffset} inputTurn={inputTurn} />
+          <Kart speed={speedRef} inputTurn={inputTurn} />
 
-          <group ref={cameraLookAtRef} position={[0, -2, -9]}></group>
+          <group ref={cameraLookAtRef} position={[0, -3, -9]}></group>
         </group>
       </group>
     </>

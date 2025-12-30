@@ -11,7 +11,7 @@ import { useGameStore } from "../store.js";
 import { Raycaster, Vector3 } from "three";
 const raycaster = new Raycaster();
 
-export function Kart({ speed, jumpOffset, inputTurn }) {
+export function Kart({ speed, inputTurn }) {
   const { nodes, materials } = useGLTF("/models/kart.glb");
 
   const wheel3 = useRef(null);
@@ -79,7 +79,7 @@ export function Kart({ speed, jumpOffset, inputTurn }) {
       const hit = intersects[0];
       if (hit.object.name.includes("ground")) {
         const safeY = Math.max(
-          hit.point.y + 0.78 + jumpOffset.current,
+          hit.point.y + 0.78,
           wheel.current.position.y - 0.1
         );
         wheel.current.position.y = safeY;
@@ -89,8 +89,7 @@ export function Kart({ speed, jumpOffset, inputTurn }) {
 
       wheel.current.isOnDirt =
         hit.object.name.includes("dirt") &&
-        speed.current > 5 &&
-        jumpOffset.current === 0;
+        speed.current > 5;
     } else {
       if (typeof wheel.current.lastSafeY === "number") {
         wheel.current.position.y = damp(
@@ -131,9 +130,7 @@ export function Kart({ speed, jumpOffset, inputTurn }) {
 
     bodyRef.current.rotation.x = pitch;
 
-    // bodyRef.current.rotation.z = roll;
-
-    bodyRef.current.position.y = averageYPos + jumpOffset.current * 0.1;
+    bodyRef.current.position.y = averageYPos;
   }
   useFrame((_, delta) => {
     if (wheel0.current && wheel1.current && wheel2.current && wheel3.current) {
