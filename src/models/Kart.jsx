@@ -9,7 +9,6 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { damp } from "three/src/math/MathUtils.js";
 import { useGameStore } from "../store.js";
 import { Raycaster, Vector3 } from "three";
-import { KartDust } from "./KartDust.jsx";
 const raycaster = new Raycaster();
 
 export function Kart({ speed, jumpOffset, inputTurn }) {
@@ -186,7 +185,6 @@ export function Kart({ speed, jumpOffset, inputTurn }) {
         <group ref={wheel3Base} position={[0.77, 0, -0.7]} />
         <group ref={wheel1Base} position={[0.7, 0, 0.7]} />
         <group ref={wheel0Base} position={[-0.7, 0, 0.7]} />
-        <KartDust wheelStates={dustWheelStates.current} />
         <mesh
           ref={wheelRef}
           castShadow
