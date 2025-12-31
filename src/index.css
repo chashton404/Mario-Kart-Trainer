@@ -116,3 +116,82 @@ canvas{
   padding: 6px 10px;
   border-radius: 6px;
 }
+
+.bike-overlay {
+  position: fixed;
+  top: 52px;
+  left: 15px;
+  color: white;
+  font-family: "DIN 2014";
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 8px 10px;
+  border-radius: 6px;
+  min-width: 220px;
+  backdrop-filter: blur(4px);
+}
+
+.bike-overlay__header {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+.bike-overlay__metrics {
+  display: flex;
+  gap: 12px;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric__value {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.metric__label {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.bike-overlay__controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.bike-overlay button {
+  font-family: "DIN 2014";
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.bike-overlay button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.bike-overlay button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.bike-overlay__status {
+  margin-top: 4px;
+  font-size: 11px;
+  opacity: 0.75;
+}
