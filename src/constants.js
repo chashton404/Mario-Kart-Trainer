@@ -4,5 +4,5 @@ export const kartSettings = {
     max: 50,
     default: 0,
   },
-
+  weight: 10
 };

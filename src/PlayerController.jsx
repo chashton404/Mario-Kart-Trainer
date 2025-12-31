@@ -31,6 +31,9 @@ export const PlayerController = () => {
   const setPlayerPosition = useGameStore((state) => state.setPlayerPosition);
   const setSpeed = useGameStore((state) => state.setSpeed);
   const setGamepad = useGameStore((state) => state.setGamepad);
+  const bikeWatts = useGameStore((state) => state.bikeWatts ?? 0);
+  const bodyWeightKg = useGameStore((state) => state.bodyWeight ?? 75);
+  const kPower = useGameStore((state) => state.kPower ?? 1);
 
   const getGamepad = () => {
     if (navigator.getGamepads) {
@@ -42,8 +45,9 @@ export const PlayerController = () => {
     }
   };
 
-  function updateSpeed(forward, backward, delta) {
+  function updateSpeed(forward, backward, delta, watts, massKg, powerScale = 1) {
     const maxSpeed = kartSettings.speed.max;
+    const minSpeed = kartSettings.speed.min;
 
     const gamepadButtons = {
       forward: false,
@@ -54,15 +58,34 @@ export const PlayerController = () => {
       gamepadButtons.forward = gamepadRef.current.buttons[0].pressed;
       gamepadButtons.backward = gamepadRef.current.buttons[1].pressed;
     }
-    const forwardAccel = Number(forward || gamepadButtons.forward);
 
-    speedRef.current = damp(
-      speedRef.current,
-      maxSpeed * forwardAccel +
-        kartSettings.speed.min * Number(backward || gamepadButtons.backward),
-      1.5,
-      delta
-    );
+    const throttleInput = Number(forward || gamepadButtons.forward);
+    const brakeInput = Number(backward || gamepadButtons.backward);
+
+    const speed = speedRef.current;
+    const v = Math.max(Math.abs(speed), 0.1); // avoid div/zero for power-based accel
+    const effectiveMass = Math.max(massKg, 1);
+    const effectiveWatts = Math.max(watts, 0);
+
+    // Power -> acceleration: a = (eff * P) / (m * v)
+    const drivetrainEff = 0.95;
+    const bikeAccel = (drivetrainEff * effectiveWatts * powerScale) / (effectiveMass * v);
+
+    // Keyboard throttle as a small additive accel to let non-bike input still work
+    const manualAccel = throttleInput * (maxSpeed * 0.08);
+
+    // Simple quadratic drag opposing motion
+    const dragCoeff = 0.02;
+    const dragAccel = dragCoeff * speed * speed;
+
+    // Braking decel
+    const brakeAccel = brakeInput * (maxSpeed * 0.12);
+
+    let netAccel = bikeAccel + manualAccel - brakeAccel;
+    netAccel -= Math.sign(speed || 1) * dragAccel;
+
+    speedRef.current = speedRef.current + netAccel * delta;
+    speedRef.current = Math.min(Math.max(speedRef.current, minSpeed), maxSpeed);
     setSpeed(speedRef.current);
   }
 
@@ -138,12 +161,18 @@ export const PlayerController = () => {
     if (gamepadRef.current) {
       gamepadButtons.x = gamepadRef.current.axes[0];
       forwardInput = forwardInput || Number(gamepadRef.current.buttons[0].pressed)
-      backwardInput = backwardInput || Number(gamepadRef.current.button[1].pressed)
+      backwardInput = backwardInput || Number(gamepadRef.current.buttons[1].pressed)
     }
 
-    const inputDirection = forwardInput - backwardInput;
+    const massKg = Math.max((bodyWeightKg || 0) + kartSettings.weight, 1);
+    const watts = bikeWatts || 0;
 
-    updateSpeed(forward, backward, delta);
+    let inputDirection = forwardInput - backwardInput;
+    if (inputDirection === 0 && watts > 0) {
+      inputDirection = 1; // treat pedaling power as forward intent
+    }
+
+    updateSpeed(forward, backward, delta, watts, massKg, kPower);
     updatePlayer(player, speedRef.current, camera, kart, delta, inputDirection);
     getGamepad();
   });

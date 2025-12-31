@@ -24,4 +24,15 @@ export const useGameStore = create((set) => ({
   setCollider: (collider) => set({ collider }),
   trackScene: null,
   setTrackScene: (trackScene) => set({ trackScene }),
+  // Bike Inputs
+  bikeWatts: null,
+  setBikeWatts: (bikeWatts) => set({ bikeWatts }),
+  bikeCadence: null,
+  setBikeCadence: (bikeCadence) => set({ bikeCadence }),
+  // Weight Inputs
+  bodyWeight: 75,
+  setBodyWeight: (bodyWeight) => set({ bodyWeight }),
+  // Power scaling
+  kPower: 3,
+  setKPower: (kPower) => set({ kPower }),
 }));
