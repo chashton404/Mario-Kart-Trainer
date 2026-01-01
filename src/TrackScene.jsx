@@ -1,5 +1,5 @@
 import { PlayerController } from "./PlayerController";
-import {Track} from './models/Straight-track';
+import {Track} from './models/Oval-track';
 export const TrackScene = () => {
   return (
     <>
