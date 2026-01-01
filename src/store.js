@@ -35,4 +35,7 @@ export const useGameStore = create((set) => ({
   // Power scaling
   kPower: 3,
   setKPower: (kPower) => set({ kPower }),
+  // Orientation debug
+  yaw: 0,
+  setYaw: (yaw) => set({ yaw }),
 }));

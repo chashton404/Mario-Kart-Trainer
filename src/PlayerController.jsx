@@ -21,14 +21,16 @@ export const PlayerController = () => {
   const pathRef = useRef(new CatmullRomCurve3(
     [
       new Vector3(-30, 0, 50),    // start
-      new Vector3(-30, 0, -180),  // straight
-      new Vector3(-30, 0, -360),  // end of straight
-      new Vector3(0,   0, -420),  // begin turn
-      new Vector3(80,  0, -420),  // apex of turn (swinging right)
-      new Vector3(140, 0, -360),  // exit turn
-      new Vector3(140, 0, -180),  // align to return
-      new Vector3(140, 0, 50),    // back up the parallel straight
-    ], false, "centripetal"))
+      new Vector3(-30, 0, -180),
+      new Vector3(-30, 0, -330),
+      new Vector3(-30, 0, -350),
+      new Vector3(80,  0, -420),  // bottom-right turn
+      new Vector3(220, 0, -360),
+      new Vector3(260, 0, -180),
+      new Vector3(220, 0, 50),
+      new Vector3(80,  0, 110),   // top-left turn
+      new Vector3(-30, 0, 60)
+    ], true, "centripetal"))
   
   const pathLengthRef = useRef(pathRef.current.getLength())
   const progressRef = useRef(0)
@@ -47,6 +49,7 @@ export const PlayerController = () => {
   const bikeWatts = useGameStore((state) => state.bikeWatts ?? 0);
   const bodyWeightKg = useGameStore((state) => state.bodyWeight ?? 75);
   const kPower = useGameStore((state) => state.kPower ?? 1);
+  const setYaw = useGameStore((state) => state.setYaw);
 
   //Camera Constants
   const tmpEye = useRef(new Vector3());
@@ -141,7 +144,8 @@ export const PlayerController = () => {
     const path = pathRef.current;
     const pathLength = pathLengthRef.current || 1;
     const deltaProgress = inputDirection * (Math.abs(speed) / pathLength) * delta;
-    progressRef.current = Math.max(0, Math.min(1, progressRef.current + deltaProgress));
+    progressRef.current = (progressRef.current + deltaProgress) % 1;
+    if (progressRef.current < 0) progressRef.current += 1;
   
     // Sample the path: where the kart should be, and the forward direction to face
     const point = path.getPointAt(progressRef.current);
@@ -150,8 +154,14 @@ export const PlayerController = () => {
     // Snap the kart’s transform to the path position and align facing to the tangent
     player.position.copy(point);
     const targetRotation = Math.atan2(-tangent.x, -tangent.z);
-    player.rotation.y = damp(player.rotation.y, targetRotation, 8, delta);
-    kart.rotation.y = damp(kart.rotation.y, 0, 6, delta); // keep body level
+
+    let angleDiff = targetRotation - player.rotation.y;
+    while (angleDiff > Math.PI) angleDiff -= 2 * Math.PI;
+    while (angleDiff < -Math.PI) angleDiff += 2 * Math.PI;
+
+    player.rotation.y = player.rotation.y + damp(0, angleDiff, 4, delta);
+    kart.rotation.y = damp(kart.rotation.y, 0, 3, delta); // keep body level
+    setYaw(targetRotation);
   
     //Constants for the camera
     //Desired positions
